@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 
 interface Product {
   name: string;
-  buyPrice: number;
-  sellPrice: number;
-  profitLoss: number;
+  buyPrice: number; // quantity
+  sellPrice: number; // rate
+  profitLoss: number; // total price
   date: string;
 }
 
@@ -26,8 +26,8 @@ export default function Hero() {
   const [showCreditForm, setShowCreditForm] = useState(false);
 
   const [name, setName] = useState("");
-  const [buyPrice, setBuyPrice] = useState("");
-  const [sellPrice, setSellPrice] = useState("");
+  const [buyPrice, setBuyPrice] = useState(""); // quantity
+  const [sellPrice, setSellPrice] = useState(""); // rate
   const [date, setDate] = useState("");
 
   const [creditPerson, setCreditPerson] = useState("");
@@ -52,15 +52,15 @@ export default function Hero() {
   }, [credits]);
 
   const handleAddProduct = () => {
-    const buy = parseFloat(buyPrice);
-    const sell = parseFloat(sellPrice);
-    if (!name || isNaN(buy) || isNaN(sell) || !date) return;
+    const quantity = parseFloat(buyPrice);
+    const rate = parseFloat(sellPrice);
+    if (!name || isNaN(quantity) || isNaN(rate) || !date) return;
 
     const newProduct: Product = {
       name,
-      buyPrice: buy,
-      sellPrice: sell,
-      profitLoss: sell - buy,
+      buyPrice: quantity,
+      sellPrice: rate,
+      profitLoss: quantity * rate,
       date,
     };
 
@@ -104,18 +104,9 @@ export default function Hero() {
 
   return (
     <section className="w-full bg-gray-100 py-12 px-4 md:px-8 lg:px-16">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
 
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900">Product Tracker</h1>
-            <p className="text-gray-600">Track buy/sell prices & calculate profit or loss.</p>
-          </div>
-        </div>
-
-        {/* Form Toggle Buttons */}
-        <div className="flex gap-4 justify-end mb-8">
+        <div className="flex gap-4 justify-center mb-8">
           <Button
             onClick={() => {
               setShowSellForm(true);
@@ -136,14 +127,13 @@ export default function Hero() {
           </Button>
         </div>
 
-        {/* Sell Product Form */}
         {showSellForm && (
           <div className="bg-white p-6 rounded-lg shadow-md mb-6">
             <h2 className="text-xl font-semibold mb-4">Add New Sell Product</h2>
             <div className="flex flex-col gap-4">
               <input type="text" placeholder="Product Name" value={name} onChange={(e) => setName(e.target.value)} className="border px-4 py-2 rounded-md" />
-              <input type="number" placeholder="Buy Price" value={buyPrice} onChange={(e) => setBuyPrice(e.target.value)} className="border px-4 py-2 rounded-md" />
-              <input type="number" placeholder="Sell Price" value={sellPrice} onChange={(e) => setSellPrice(e.target.value)} className="border px-4 py-2 rounded-md" />
+              <input type="number" placeholder="Quantity" value={buyPrice} onChange={(e) => setBuyPrice(e.target.value)} className="border px-4 py-2 rounded-md" />
+              <input type="number" placeholder="Rate" value={sellPrice} onChange={(e) => setSellPrice(e.target.value)} className="border px-4 py-2 rounded-md" />
               <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="border px-4 py-2 rounded-md" />
               <Button onClick={handleAddProduct} className="bg-green-600 text-white hover:bg-green-700">
                 Add Sell Product
@@ -152,7 +142,46 @@ export default function Hero() {
           </div>
         )}
 
-        {/* Udhar Form */}
+        {products.length > 0 && (
+          <div className="mt-10">
+            <h2 className="text-2xl font-bold mb-4 text-gray-800">Sell Product List</h2>
+            <table className="w-full bg-white rounded-lg shadow overflow-hidden text-left">
+              <thead className="bg-gray-200">
+                <tr className="text-gray-700">
+                  <th className="py-2 px-4">#</th>
+                  <th className="py-2 px-4">Quantity</th>
+                  <th className="py-2 px-4">Product Name</th>
+                  <th className="py-2 px-4">Rate</th>
+                  <th className="py-2 px-4">Total Price</th>
+                  <th className="py-2 px-4">Date</th>
+                  <th className="py-2 px-4">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {products.map((product, index) => (
+                  <tr key={index} className="border-t">
+                    <td className="py-2 px-4">{index + 1}</td>
+                    <td className="py-2 px-4">{product.buyPrice}</td>
+                    <td className="py-2 px-4">{product.name}</td>
+                    <td className="py-2 px-4">{product.sellPrice}</td>
+                    <td className="py-2 px-4 font-semibold text-green-600">{product.profitLoss.toFixed(2)}</td>
+                    <td className="py-2 px-4">{product.date}</td>
+                    <td className="py-2 px-4">
+                      <Button onClick={() => handleDeleteProduct(index)} className="bg-red-600 text-white hover:bg-red-700 text-sm px-3 py-1">
+                        Delete
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="mt-4 p-4 bg-gray-100 rounded text-right">
+              <strong className="text-gray-800">Total Sell Amount: </strong>
+              <span className="text-green-700 font-bold text-lg">{totalProfitLoss.toFixed(2)}</span>
+            </div>
+          </div>
+        )}
+
         {showCreditForm && (
           <div className="bg-white p-6 rounded-lg shadow-md mb-6">
             <h2 className="text-xl font-semibold mb-4">Add Udhar Product</h2>
@@ -168,37 +197,6 @@ export default function Hero() {
           </div>
         )}
 
-        {/* Sell Product List */}
-        {products.length > 0 && (
-          <div className="space-y-4 mt-10">
-            <h2 className="text-2xl font-bold mb-2 text-gray-800">Sell Product List</h2>
-            {products.map((product, index) => (
-              <div key={index} className="bg-white p-4 rounded-lg shadow flex justify-between items-center">
-                <div>
-                  <h3 className="text-2xl font-semibold">{product.name}</h3>
-                  <p className="text-lg font-bold text-gray-600">
-                    Buy: {product.buyPrice} | Sell: {product.sellPrice}
-                  </p>
-                  <p className="text-lg text-gray-500">Date: {product.date}</p>
-                  <p className={`text-lg font-bold ${product.profitLoss >= 0 ? "text-green-600" : "text-red-600"}`}>
-                    {product.profitLoss >= 0 ? "Profit" : "Loss"}: {product.profitLoss.toFixed(2)}
-                  </p>
-                </div>
-                <Button onClick={() => handleDeleteProduct(index)} className="bg-red-600 text-white hover:bg-red-700">
-                  Delete
-                </Button>
-              </div>
-            ))}
-            <div className="p-4 bg-gray-200 rounded-md mt-6">
-              <h4 className="text-lg font-semibold">Total Profit/Loss</h4>
-              <p className={`text-xl font-bold ${totalProfitLoss >= 0 ? "text-green-700" : "text-red-700"}`}>
-                {totalProfitLoss.toFixed(2)}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Udhar Product List */}
         {credits.length > 0 && (
           <div className="space-y-4 mt-16">
             <h2 className="text-2xl font-bold mb-2 text-gray-800">Udhar Product List</h2>
