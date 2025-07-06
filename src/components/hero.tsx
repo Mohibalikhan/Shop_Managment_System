@@ -6,16 +6,17 @@ import { Button } from "@/components/ui/button";
 interface Product {
   name: string;
   buyPrice: number; // quantity
-  sellPrice: number; // rate
-  profitLoss: number; // total price
-  date: string;
+  buyRate: number;
+  sellRate: number;
+  totalInvestment: number;
+  totalSell: number;
+  profit: number;
 }
 
 interface CreditItem {
   person: string;
   item: string;
   amount: number;
-  date: string;
 }
 
 export default function Hero() {
@@ -27,13 +28,12 @@ export default function Hero() {
 
   const [name, setName] = useState("");
   const [buyPrice, setBuyPrice] = useState(""); // quantity
-  const [sellPrice, setSellPrice] = useState(""); // rate
-  const [date, setDate] = useState("");
+  const [buyRate, setBuyRate] = useState(""); // buying rate
+  const [sellRate, setSellRate] = useState(""); // selling rate
 
   const [creditPerson, setCreditPerson] = useState("");
   const [creditItem, setCreditItem] = useState("");
   const [creditAmount, setCreditAmount] = useState("");
-  const [creditDate, setCreditDate] = useState("");
 
   useEffect(() => {
     const savedProducts = localStorage.getItem("products");
@@ -52,23 +52,31 @@ export default function Hero() {
   }, [credits]);
 
   const handleAddProduct = () => {
-    const quantity = parseFloat(buyPrice);
-    const rate = parseFloat(sellPrice);
-    if (!name || isNaN(quantity) || isNaN(rate) || !date) return;
+    const qty = parseFloat(buyPrice);
+    const buy = parseFloat(buyRate);
+    const sell = parseFloat(sellRate);
+
+    if (!name || isNaN(qty) || isNaN(buy) || isNaN(sell)) return;
+
+    const totalInvestment = qty * buy;
+    const totalSell = qty * sell;
+    const profit = totalSell - totalInvestment;
 
     const newProduct: Product = {
       name,
-      buyPrice: quantity,
-      sellPrice: rate,
-      profitLoss: quantity * rate,
-      date,
+      buyPrice: qty,
+      buyRate: buy,
+      sellRate: sell,
+      totalInvestment,
+      totalSell,
+      profit,
     };
 
     setProducts((prev) => [...prev, newProduct]);
     setName("");
     setBuyPrice("");
-    setSellPrice("");
-    setDate("");
+    setBuyRate("");
+    setSellRate("");
     setShowSellForm(false);
   };
 
@@ -78,20 +86,18 @@ export default function Hero() {
 
   const handleAddCredit = () => {
     const amount = parseFloat(creditAmount);
-    if (!creditPerson || !creditItem || isNaN(amount) || !creditDate) return;
+    if (!creditPerson || !creditItem || isNaN(amount)) return;
 
     const newCredit: CreditItem = {
       person: creditPerson,
       item: creditItem,
       amount,
-      date: creditDate,
     };
 
     setCredits((prev) => [...prev, newCredit]);
     setCreditPerson("");
     setCreditItem("");
     setCreditAmount("");
-    setCreditDate("");
     setShowCreditForm(false);
   };
 
@@ -99,7 +105,9 @@ export default function Hero() {
     setCredits((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const totalProfitLoss = products.reduce((total, p) => total + p.profitLoss, 0);
+  const totalProfit = products.reduce((total, p) => total + p.profit, 0);
+  const totalInvestment = products.reduce((total, p) => total + p.totalInvestment, 0);
+  const totalSell = products.reduce((total, p) => total + p.totalSell, 0);
   const totalCreditAmount = credits.reduce((total, c) => total + c.amount, 0);
 
   return (
@@ -132,8 +140,8 @@ export default function Hero() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <input type="text" placeholder="Product Name" value={name} onChange={(e) => setName(e.target.value)} className="border px-4 py-2 rounded-md w-full" />
               <input type="number" placeholder="Quantity" value={buyPrice} onChange={(e) => setBuyPrice(e.target.value)} className="border px-4 py-2 rounded-md w-full" />
-              <input type="number" placeholder="Rate" value={sellPrice} onChange={(e) => setSellPrice(e.target.value)} className="border px-4 py-2 rounded-md w-full" />
-              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="border px-4 py-2 rounded-md w-full" />
+              <input type="number" placeholder="Buying Rate" value={buyRate} onChange={(e) => setBuyRate(e.target.value)} className="border px-4 py-2 rounded-md w-full" />
+              <input type="number" placeholder="Selling Rate" value={sellRate} onChange={(e) => setSellRate(e.target.value)} className="border px-4 py-2 rounded-md w-full" />
               <div className="sm:col-span-2">
                 <Button onClick={handleAddProduct} className="w-full bg-green-600 text-white hover:bg-green-700">
                   Add Sell Product
@@ -146,27 +154,31 @@ export default function Hero() {
         {products.length > 0 && (
           <div className="overflow-x-auto mt-10">
             <h2 className="text-2xl font-bold mb-4 text-gray-800">Sell Product List</h2>
-            <table className="w-full bg-white rounded-lg shadow text-left min-w-[700px]">
+            <table className="w-full bg-white rounded-lg shadow text-left min-w-[900px]">
               <thead className="bg-gray-200">
                 <tr className="text-gray-700">
                   <th className="py-2 px-4">#</th>
-                  <th className="py-2 px-4">Qty</th>
                   <th className="py-2 px-4">Product</th>
-                  <th className="py-2 px-4">Rate</th>
-                  <th className="py-2 px-4">Total</th>
-                  <th className="py-2 px-4">Date</th>
+                  <th className="py-2 px-4">Qty</th>
+                  <th className="py-2 px-4">Buy Rate</th>
+                  <th className="py-2 px-4">Sell Rate</th>
+                  <th className="py-2 px-4">Investment</th>
+                  <th className="py-2 px-4">Sell</th>
+                  <th className="py-2 px-4">Profit</th>
                   <th className="py-2 px-4">Action</th>
                 </tr>
               </thead>
               <tbody>
-                {products.map((product, index) => (
+                {products.map((p, index) => (
                   <tr key={index} className="border-t">
                     <td className="py-2 px-4">{index + 1}</td>
-                    <td className="py-2 px-4">{product.buyPrice}</td>
-                    <td className="py-2 px-4">{product.name}</td>
-                    <td className="py-2 px-4">{product.sellPrice}</td>
-                    <td className="py-2 px-4 text-green-600 font-semibold">{product.profitLoss.toFixed(2)}</td>
-                    <td className="py-2 px-4">{product.date}</td>
+                    <td className="py-2 px-4">{p.name}</td>
+                    <td className="py-2 px-4">{p.buyPrice}</td>
+                    <td className="py-2 px-4">{p.buyRate}</td>
+                    <td className="py-2 px-4">{p.sellRate}</td>
+                    <td className="py-2 px-4 text-yellow-600">{p.totalInvestment.toFixed(2)}</td>
+                    <td className="py-2 px-4 text-blue-600">{p.totalSell.toFixed(2)}</td>
+                    <td className="py-2 px-4 text-green-700 font-semibold">{p.profit.toFixed(2)}</td>
                     <td className="py-2 px-4">
                       <Button onClick={() => handleDeleteProduct(index)} className="bg-red-600 text-white hover:bg-red-700 text-sm px-3 py-1">
                         Delete
@@ -176,9 +188,11 @@ export default function Hero() {
                 ))}
               </tbody>
             </table>
-            <div className="mt-4 p-4 bg-gray-100 rounded text-right">
-              <strong className="text-gray-800">Total Sell Amount: </strong>
-              <span className="text-green-700 font-bold text-lg">{totalProfitLoss.toFixed(2)}</span>
+
+            <div className="mt-4 p-4 bg-gray-100 rounded text-right space-y-1">
+              <div><strong className="text-gray-800">Total Investment: </strong><span className="text-yellow-700 font-bold">{totalInvestment.toFixed(2)}</span></div>
+              <div><strong className="text-gray-800">Total Sell: </strong><span className="text-blue-700 font-bold">{totalSell.toFixed(2)}</span></div>
+              <div><strong className="text-gray-800">Total Profit: </strong><span className="text-green-700 font-bold text-lg">{totalProfit.toFixed(2)}</span></div>
             </div>
           </div>
         )}
@@ -190,7 +204,6 @@ export default function Hero() {
               <input type="text" placeholder="Person's Name" value={creditPerson} onChange={(e) => setCreditPerson(e.target.value)} className="border px-4 py-2 rounded-md w-full" />
               <input type="text" placeholder="Item Given" value={creditItem} onChange={(e) => setCreditItem(e.target.value)} className="border px-4 py-2 rounded-md w-full" />
               <input type="number" placeholder="Amount" value={creditAmount} onChange={(e) => setCreditAmount(e.target.value)} className="border px-4 py-2 rounded-md w-full" />
-              <input type="date" value={creditDate} onChange={(e) => setCreditDate(e.target.value)} className="border px-4 py-2 rounded-md w-full" />
               <div className="sm:col-span-2">
                 <Button onClick={handleAddCredit} className="w-full bg-blue-600 text-white hover:bg-blue-700">
                   Add Udhar Product
@@ -210,7 +223,6 @@ export default function Hero() {
                   <p className="text-lg font-bold text-gray-600">
                     Given to: {credit.person} | Amount: {credit.amount.toFixed(2)}
                   </p>
-                  <p className="text-lg font-bold text-red-600">Date: {credit.date}</p>
                 </div>
                 <Button onClick={() => handleDeleteCredit(index)} className="bg-red-600 text-white hover:bg-red-700">
                   Delete
