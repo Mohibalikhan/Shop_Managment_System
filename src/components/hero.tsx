@@ -140,8 +140,8 @@ export default function Hero() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <input type="text" placeholder="Product Name" value={name} onChange={(e) => setName(e.target.value)} className="border px-4 py-2 rounded-md w-full bg-white/90" />
               <input type="number" placeholder="Quantity" value={buyPrice} onChange={(e) => setBuyPrice(e.target.value)} className="border px-4 py-2 rounded-md w-full bg-white/90" />
-              <input type="number" placeholder="Buying Rate" value={buyRate} onChange={(e) => setBuyRate(e.target.value)} className="border px-4 py-2 rounded-md w-full bg-white/90" />
-              <input type="number" placeholder="Selling Rate" value={sellRate} onChange={(e) => setSellRate(e.target.value)} className="border px-4 py-2 rounded-md w-full bg-white/90" />
+              <input type="number" placeholder="Buying Rate Each" value={buyRate} onChange={(e) => setBuyRate(e.target.value)} className="border px-4 py-2 rounded-md w-full bg-white/90" />
+              <input type="number" placeholder="Selling Rate Each" value={sellRate} onChange={(e) => setSellRate(e.target.value)} className="border px-4 py-2 rounded-md w-full bg-white/90" />
               <div className="sm:col-span-2">
                 <Button onClick={handleAddProduct} className="w-full bg-green-600 text-white hover:bg-green-700">
                   Add Sell Product
